@@ -1,11 +1,4 @@
 {
-  "expo": {
-    "name": "flc",
-    "slug": "flc",
-    "version": "1.0.0",
-    "assetBundlePatterns": [
-      "**/*"
-    ]
-  },
-  "name": "flc"
+  "name": "flc",
+  "displayName": "flc"
 }
