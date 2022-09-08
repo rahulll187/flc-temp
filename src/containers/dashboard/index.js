@@ -11,7 +11,7 @@ import { getProjects, getCurrentProjects, resetProjectsData, projectDetailUpdate
 import { promoterCheckIn, resetCheckInData, promoterCheckout, getCheckedInStatus } from '../../reducers/checkIn/actions'
 import { getAllUsers } from '../../reducers/users/actions'
 import { getAppConfig } from '../../reducers/appConfig/actions'
-import { Sentry } from 'react-native-sentry'
+import * as Sentry from "@sentry/react-native";
 import { deviceDetails, appEnviroment, isCrashReportEnabled,Colors } from '../../constants'
 
 const styles = StyleSheet.create({

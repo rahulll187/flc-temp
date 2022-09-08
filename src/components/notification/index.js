@@ -10,8 +10,8 @@ import {
 } from 'react-native'
 import { deviceDetails, isCrashReportEnabled , Colors } from '../../constants'
 import { Actions } from 'react-native-router-flux'
-import { Sentry ,SentrySeverity } from 'react-native-sentry'
-
+//import { SentrySeverity } from '@sentry/react-native'
+import * as Sentry from "@sentry/react-native";
 
 const { width ,height} = Dimensions.get('window')
 

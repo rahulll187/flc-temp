@@ -33,6 +33,9 @@ target 'flc' do
   #   use_flipper!()
   # end
 
+
+  pod 'RNSentry', :path => '../node_modules/@sentry/react-native'
+
   post_install do |installer|
     react_native_post_install(installer)
     __apply_Xcode_12_5_M1_post_install_workaround(installer)
