@@ -64,9 +64,9 @@ export const Colors = {
 // export const SENTRY_URL = 'https://47d446e5b77f425db9c959327b1483b2@sentry.io/1370096'
 
 // PRODUCTION URL FLC
-// export const applicationName = 'FieldForce'
-// export const APP_URL = 'https://flcapi.azurewebsites.net/api/'
-// export const SENTRY_URL = 'https://47d446e5b77f425db9c959327b1483b2@sentry.io/1370096'
+export const applicationName = 'FieldForce'
+export const APP_URL = 'https://flcapi.azurewebsites.net/api/'
+export const SENTRY_URL = 'https://47d446e5b77f425db9c959327b1483b2@sentry.io/1370096'
 
 
 // ACTIVATE8
@@ -76,9 +76,9 @@ export const Colors = {
 
 
 // PRODUCTION URL ACTIVATE8
-export const applicationName = 'Active8'
-export const APP_URL = 'https://activeapiprd.azurewebsites.net/api/'
-export const SENTRY_URL = 'https://36a6f39cbf6f426b9ad1757f3b2f42a9@sentry.io/1370524'
+// export const applicationName = 'Active8'
+// export const APP_URL = 'https://activeapiprd.azurewebsites.net/api/'
+// export const SENTRY_URL = 'https://36a6f39cbf6f426b9ad1757f3b2f42a9@sentry.io/1370524'
 
 
 
