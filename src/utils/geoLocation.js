@@ -3,11 +3,12 @@ import React from 'react';
 export default function geolocation() {
   return new Promise((resolve, reject) => {
     try {
-      navigator.geolocation.getCurrentPosition((position) => {
+      Geolocation.getCurrentPosition((position) => {
         const location = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude
         };
+        {console.log('latitude',latitude);}
         resolve(location);
       }, (error) => {
         reject(error);

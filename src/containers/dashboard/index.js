@@ -13,6 +13,10 @@ import { getAllUsers } from '../../reducers/users/actions'
 import { getAppConfig } from '../../reducers/appConfig/actions'
 import { Sentry } from 'react-native-sentry'
 import { deviceDetails, appEnviroment, isCrashReportEnabled,Colors } from '../../constants'
+import Geolocation from "@react-native-community/geolocation";
+import * as Location from "expo-location";
+import {getDistance} from 'geolib';
+
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -63,6 +67,9 @@ class ProjectDashBoard extends Component {
       strCheckInStatus: this.props.checkInState.IsCheckedIn ? 'CHECK-OUT' : 'CHECK-IN',
       IsCheckedIn: this.props.checkInState.IsCheckedIn,
       isPressed: false,
+      destinationLat: 18.54843720153897,
+      destinationLong: 73.77613155505078,
+      distance:null,
     }
     this.renderGetprojectError = this.renderGetprojectError.bind(this)
     this.renderCheckInSuccessMessage = this.renderCheckInSuccessMessage.bind(this)
@@ -197,12 +204,12 @@ class ProjectDashBoard extends Component {
     if(this.state.isPressed){
       return
     }
-    if(!this.props.appConfig.IsInternetConnected){
-    Alert.alert('', 'No Internet connection', [
-      { text: 'Ok' }
-    ]);
-      return 
-  }
+  //   if(!this.props.appConfig.IsInternetConnected){
+  //   Alert.alert('', 'No Internet connection', [
+  //     { text: 'Ok' }
+  //   ]);
+  //     return 
+  // }
 
     this.setState({
       isPressed: true
@@ -212,16 +219,39 @@ class ProjectDashBoard extends Component {
       location: 'dubai'
     }
 
-    navigator.geolocation.getCurrentPosition(
+    Geolocation.getCurrentPosition(
       position => {      
         if (this.state.IsCheckedIn) {
           this.props.promoterCheckout(body)
           return
         }
+        console.log('entered geolocation');
         const geoLocation = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude
         }
+        console.log('geolocation',geoLocation);
+        var dis = getDistance(
+          { latitude: 18.5820941, longitude: 73.7648666 },
+          { latitude: 18.54843720153897, longitude:   73.79116327930754},
+         // 18.54843720153897, 73.79116327930754
+        // 18.5389802158471, 73.77613155505078
+          // {latitude: location.coords.latitude, longitude: location.coords.longitude},
+          //  {latitude: location.coords.latitude, longitude: location.coords.longitude},
+          //  {latitude: this.state.destinationLat, longitude: this.state.destinationLong},
+        );
+        console.log('dis',dis);
+
+        this.setState({
+          distance: dis/1000,
+        });
+        if(dis<2000){
+          Alert.alert('success')
+        }
+        else{
+          Alert.alert('Error','Reach to Nearby Area')
+        }
+      
         this.props.promoterCheckIn(body, geoLocation)
       }
     );
