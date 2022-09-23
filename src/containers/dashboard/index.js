@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Text,Alert, View, StyleSheet, TouchableOpacity, Image } from 'react-native'
+import { Text,Alert, View, StyleSheet, TouchableOpacity, Image, } from 'react-native'
 import { Actions } from 'react-native-router-flux'
 import { connect } from 'react-redux'
 import PropTypes from 'prop-types'
@@ -16,6 +16,8 @@ import { deviceDetails, appEnviroment, isCrashReportEnabled,Colors } from '../..
 import Geolocation from "@react-native-community/geolocation";
 import * as Location from "expo-location";
 import {getDistance} from 'geolib';
+import Snackbar from 'react-native-snackbar';
+
 
 
 const styles = StyleSheet.create({
@@ -204,12 +206,6 @@ class ProjectDashBoard extends Component {
     if(this.state.isPressed){
       return
     }
-  //   if(!this.props.appConfig.IsInternetConnected){
-  //   Alert.alert('', 'No Internet connection', [
-  //     { text: 'Ok' }
-  //   ]);
-  //     return 
-  // }
 
     this.setState({
       isPressed: true
@@ -233,23 +229,25 @@ class ProjectDashBoard extends Component {
         console.log('geolocation',geoLocation);
         var dis = getDistance(
           { latitude: 18.5820941, longitude: 73.7648666 },
-          { latitude: 18.54843720153897, longitude:   73.79116327930754},
-         // 18.54843720153897, 73.79116327930754
-        // 18.5389802158471, 73.77613155505078
-          // {latitude: location.coords.latitude, longitude: location.coords.longitude},
-          //  {latitude: location.coords.latitude, longitude: location.coords.longitude},
-          //  {latitude: this.state.destinationLat, longitude: this.state.destinationLong},
-        );
+          { latitude: 24.423097, longitude:   54.449280},
+         );
         console.log('dis',dis);
 
         this.setState({
           distance: dis/1000,
         });
         if(dis<2000){
-          Alert.alert('success')
+          Snackbar.show({
+            text: 'Success',
+            duration: Snackbar.LENGTH_SHORT,
+          });
+          
         }
         else{
-          Alert.alert('Error','Reach to Nearby Area')
+          Snackbar.show({
+            text: "Error! Reach to Nearby Area",
+            duration: Snackbar.LENGTH_LONG,
+          });
         }
       
         this.props.promoterCheckIn(body, geoLocation)
