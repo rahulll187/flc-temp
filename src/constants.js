@@ -54,8 +54,8 @@ export const Colors = {
   green : "#345b53",
   lightGray:"#949394",
   borderColor: '#6B6B6B',
-  appThemeColor:'#E46F3E', //Active8
-  //appThemeColor:'#BE1F26' // FLCTheme
+  // appThemeColor:'#E46F3E', //Active8
+  appThemeColor:'#BE1F26' // FLCTheme
 };
 
 // FLC
@@ -63,11 +63,10 @@ export const Colors = {
 // export const APP_URL = 'http://flcuat.arowanaconsulting.com/FLCAPI/api/'
 // export const SENTRY_URL = 'https://47d446e5b77f425db9c959327b1483b2@sentry.io/1370096'
 
-// PRODUCTION URL FLC
+// // PRODUCTION URL FLC
 export const applicationName = 'FieldForce'
 export const APP_URL = 'https://flcapi.azurewebsites.net/api/'
 export const SENTRY_URL = 'https://47d446e5b77f425db9c959327b1483b2@sentry.io/1370096'
-
 
 // ACTIVATE8
 // export const applicationName = 'Active8'

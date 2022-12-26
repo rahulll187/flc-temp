@@ -10,7 +10,8 @@ import {
 import { Actions } from "react-native-router-flux";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import Geolocation from "@react-native-community/geolocation";
+// import Geolocation from "@react-native-community/geolocation";
+import Geolocation from 'react-native-geolocation-service';
 import { reduxForm } from "redux-form";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import CustomButton from "../../components/customButton";
@@ -116,8 +117,35 @@ class Login extends Component {
       );
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
         console.log("You can use the camera");
+        this.requestLocationPermission();
       } else {
         console.log("Camera permission denied");
+        this.requestLocationPermission();
+      }
+    } catch (err) {
+      this.requestLocationPermission();
+      console.warn(err);
+    }
+  };
+
+  requestLocationPermission = async () => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        {
+          title: "Location Permission",
+          message:
+            "App wants to access your location" +
+            "so you can access the features.",
+          buttonNeutral: "Ask Me Later",
+          buttonNegative: "Cancel",
+          buttonPositive: "OK",
+        }
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log("You can use the location");
+      } else {
+        console.log("location permission denied");
       }
     } catch (err) {
       console.warn(err);
@@ -148,7 +176,7 @@ class Login extends Component {
     return (
       <View style={styles.container}>
         <Image
-          source={require("../../images/logo_login.png")}
+          source={require("../../images-flc/logo_login.png")}
           style={styles.logoStyle}
         />
 

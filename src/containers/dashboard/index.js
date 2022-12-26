@@ -1,86 +1,111 @@
-import React, { Component } from 'react'
-import { Text,Alert, View, StyleSheet, TouchableOpacity, Image, } from 'react-native'
-import { Actions } from 'react-native-router-flux'
-import { connect } from 'react-redux'
-import PropTypes from 'prop-types'
-import { Col, Row, Grid } from "react-native-easy-grid"
-import AccountHeader from '../../components/account-header'
-import Notification from '../../components/notification'
-import LoadingChat from '../../components/loading-chat'
-import { getProjects, getCurrentProjects, resetProjectsData, projectDetailUpdate } from '../../reducers/projects/actions'
-import { promoterCheckIn, resetCheckInData, promoterCheckout, getCheckedInStatus } from '../../reducers/checkIn/actions'
-import { getAllUsers } from '../../reducers/users/actions'
-import { getAppConfig } from '../../reducers/appConfig/actions'
-import { Sentry } from 'react-native-sentry'
-import { deviceDetails, appEnviroment, isCrashReportEnabled,Colors } from '../../constants'
-import Geolocation from "@react-native-community/geolocation";
+import React, { Component } from "react";
+import {
+  Text,
+  Alert,
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  PermissionsAndroid,
+} from "react-native";
+import { Actions } from "react-native-router-flux";
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
+import { Col, Row, Grid } from "react-native-easy-grid";
+import AccountHeader from "../../components/account-header";
+import Notification from "../../components/notification";
+import LoadingChat from "../../components/loading-chat";
+import {
+  getProjects,
+  getCurrentProjects,
+  resetProjectsData,
+  projectDetailUpdate,
+} from "../../reducers/projects/actions";
+import {
+  promoterCheckIn,
+  resetCheckInData,
+  promoterCheckout,
+  getCheckedInStatus,
+} from "../../reducers/checkIn/actions";
+import { getAllUsers } from "../../reducers/users/actions";
+import { getAppConfig } from "../../reducers/appConfig/actions";
+import { Sentry } from "react-native-sentry";
+import {
+  deviceDetails,
+  appEnviroment,
+  isCrashReportEnabled,
+  Colors,
+} from "../../constants";
+// import Geolocation from "@react-native-community/geolocation";
+import Geolocation from 'react-native-geolocation-service';
 import * as Location from "expo-location";
-import {getDistance} from 'geolib';
-import Snackbar from 'react-native-snackbar';
-
-
+import { getDistance } from "geolib";
+import Snackbar from "react-native-snackbar";
 
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
     backgroundColor: Colors.white,
-    justifyContent: 'center',
-    alignItems: 'center'
+    justifyContent: "center",
+    alignItems: "center",
   },
   mainContainer: {
     flex: 1,
-    backgroundColor: Colors.white
+    backgroundColor: Colors.white,
   },
-  colStyle: { 
-    backgroundColor: 
-    Colors.white 
+  colStyle: {
+    backgroundColor: Colors.white,
   },
   singleContainer: {
     flex: 1,
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 0.5,
-    borderColor: '#D2D2D2'
+    borderColor: "#D2D2D2",
   },
   dashboardView: {
-    flex: 1
+    flex: 1,
   },
   dashboardTitleStyle: {
     marginTop: 30,
-    textAlign: 'center',
-    fontSize: 16
+    textAlign: "center",
+    fontSize: 16,
   },
   customerInfo: {
     marginTop: 30,
-    alignItems: 'center',
-    fontSize: 16
+    alignItems: "center",
+    fontSize: 16,
   },
   iconStyle: {
-    alignSelf: 'center'
-  }
+    alignSelf: "center",
+  },
 });
 
 class ProjectDashBoard extends Component {
   constructor(props) {
-    super(props)
+    super(props);
 
     this.state = {
-      strCheckInStatus: this.props.checkInState.IsCheckedIn ? 'CHECK-OUT' : 'CHECK-IN',
+      strCheckInStatus: this.props.checkInState.IsCheckedIn
+        ? "CHECK-OUT"
+        : "CHECK-IN",
       IsCheckedIn: this.props.checkInState.IsCheckedIn,
       isPressed: false,
       destinationLat: 18.54843720153897,
       destinationLong: 73.77613155505078,
-      distance:null,
-    }
-    this.renderGetprojectError = this.renderGetprojectError.bind(this)
-    this.renderCheckInSuccessMessage = this.renderCheckInSuccessMessage.bind(this)
-    this.renderCheckInFailureMessage = this.renderCheckInFailureMessage.bind(this)
+      distance: null,
+    };
+    this.renderGetprojectError = this.renderGetprojectError.bind(this);
+    this.renderCheckInSuccessMessage =
+      this.renderCheckInSuccessMessage.bind(this);
+    this.renderCheckInFailureMessage =
+      this.renderCheckInFailureMessage.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
-    if(this.props.loginState.isLogin != nextProps.loginState.isLogin) {
-      return false
+    if (this.props.loginState.isLogin != nextProps.loginState.isLogin) {
+      return false;
     }
     if (
       this.props.checkInState.checkInStatusResult !=
@@ -88,15 +113,18 @@ class ProjectDashBoard extends Component {
     ) {
       if (Actions.currentScene === "ProjectDashBoard") {
         if (nextProps.checkInState.checkInStatusResult) {
-          if (nextProps.checkInState.checkInStatusResult.CheckInStatus === 'CHECKEDIN') {
+          if (
+            nextProps.checkInState.checkInStatusResult.CheckInStatus ===
+            "CHECKEDIN"
+          ) {
             this.setState({
               IsCheckedIn: true,
-              isPressed:false,
-              strCheckInStatus: 'CHECK-OUT'
-            })
+              isPressed: false,
+              strCheckInStatus: "CHECK-OUT",
+            });
 
-            if(this.props.loginState.response.userRole === 2){
-              this.promotersLandingscreen()
+            if (this.props.loginState.response.userRole === 2) {
+              this.promotersLandingscreen();
             }
           }
         }
@@ -105,292 +133,357 @@ class ProjectDashBoard extends Component {
   }
 
   shouldComponentUpdate(nextProps) {
-    return Actions.currentScene === 'ProjectDashBoard'
+    return Actions.currentScene === "ProjectDashBoard";
   }
 
   componentDidMount() {
     if (isCrashReportEnabled) {
-        const { FirstName,LastName,Email,DesignationName } = this.props.loginState.response
-          Sentry.setUserContext({
-            userID: `${FirstName}${LastName}`,
-            userEmail: Email
-          })
+      const { FirstName, LastName, Email, DesignationName } =
+        this.props.loginState.response;
+      Sentry.setUserContext({
+        userID: `${FirstName}${LastName}`,
+        userEmail: Email,
+      });
 
-          Sentry.setExtraContext({
-            "appVersion": deviceDetails.appVersion,
-            "emailId": Email,
-            "designation":DesignationName
-          });
+      Sentry.setExtraContext({
+        appVersion: deviceDetails.appVersion,
+        emailId: Email,
+        designation: DesignationName,
+      });
 
-          Sentry.setTagsContext({
-            "environment": appEnviroment,
-            "react": true
-          });
-        }
-
-    const obj = {
-      location: 'dubai'
+      Sentry.setTagsContext({
+        environment: appEnviroment,
+        react: true,
+      });
     }
 
-    if (this.props.loginState.isLogin) {
-      this.props.getProjects(obj)
-      this.props.getAppConfig()
+    const obj = {
+      location: "dubai",
+    };
 
-      switch(this.props.loginState.response.userRole){
+    if (this.props.loginState.isLogin) {
+      this.props.getProjects(obj);
+      this.props.getAppConfig();
+
+      switch (this.props.loginState.response.userRole) {
         // Supervisor:
         case 1:
-            // this.props.getCheckedInStatus(obj);
-            this.props.getAllUsers(obj)
-            this.props.getCurrentProjects(obj)
-            this.props.getCheckedInStatus(obj)
-          break
+          // this.props.getCheckedInStatus(obj);
+          this.props.getAllUsers(obj);
+          this.props.getCurrentProjects(obj);
+          this.props.getCheckedInStatus(obj);
+          break;
         // Promoter:
         case 2:
-          this.props.getCheckedInStatus(obj)
-          break
-  
+          this.props.getCheckedInStatus(obj);
+          break;
+
         // Account Manager:
         case 3:
-            this.props.getAllUsers(obj)
-            this.props.getCurrentProjects(obj)
-          break
-  
+          this.props.getAllUsers(obj);
+          this.props.getCurrentProjects(obj);
+          break;
+
         default:
-          break
-  
+          break;
       }
     }
   }
 
-
   navigateToLogin = () => {
-    Actions.pop()
-  }
+    Actions.pop();
+  };
 
   onPromoterHandler = () => {
     if (this.props.users.allUsers) {
       Actions.Promoters({
         userRole: -1,
-        arrUsers: this.props.users.allUsers
+        arrUsers: this.props.users.allUsers,
       });
     }
-  }
+  };
 
   onProjectHandler = () => {
     if (this.props.projectsState.projects) {
       Actions.ProjectsList({
         IsCheckedIn: false,
-        arrProjects: this.props.projectsState.projects.ProjectList
+        arrProjects: this.props.projectsState.projects.ProjectList,
       });
-      return
+      return;
     }
-  }
+  };
 
   onMyProfileHandler = () => {
-      Actions.MyProfile()
-  }
+    Actions.MyProfile();
+  };
 
   onChatHandler = () => {
     if (this.props.projectsState.projects) {
       Actions.ChatProjects({
-        arrProjects: this.props.projectsState.projects.ProjectList
+        arrProjects: this.props.projectsState.projects.ProjectList,
       });
     }
-  }
+  };
 
   onCustomerInfoHandler = () => {
-    Actions.CustomerInfo()
-  }
-
-  onCheckInCheckOutHandler = () => {
-    if(this.state.isPressed){
-      return
-    }
-
-    this.setState({
-      isPressed: true
-    })
-
-    const body = {
-      location: 'dubai'
-    }
-
-    Geolocation.getCurrentPosition(
-      position => {      
-        if (this.state.IsCheckedIn) {
-          this.props.promoterCheckout(body)
-          return
-        }
-        console.log('entered geolocation');
-        const geoLocation = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        }
-        console.log('geolocation',geoLocation);
-        var dis = getDistance(
-          { latitude: 18.5820941, longitude: 73.7648666 },
-          { latitude: 24.423097, longitude:   54.449280},
-         );
-        console.log('dis',dis);
-
-        this.setState({
-          distance: dis/1000,
-        });
-        if(dis<2000){
-          Snackbar.show({
-            text: 'Success',
-            duration: Snackbar.LENGTH_SHORT,
-          });
-          
-        }
-        else{
-          Snackbar.show({
-            text: "Error! Reach to Nearby Area",
-            duration: Snackbar.LENGTH_LONG,
-          });
-        }
-      
-        this.props.promoterCheckIn(body, geoLocation)
-      }
-    );
+    Actions.CustomerInfo();
   };
-  
+
+  onCheckInCheckOutHandler = async () => {
+    const body = {
+      location: "dubai",
+    };
+    Geolocation.getCurrentPosition((position) => {
+      if (this.state.IsCheckedIn) {
+        this.props.promoterCheckout(body);
+        return;
+      }
+      const geoLocation = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      };
+      var dis = getDistance(
+        { latitude: 18.5820941, longitude: 73.7648666 },
+        { latitude: 24.423097, longitude: 54.44928 }
+      );
+      this.setState({
+        distance: dis / 1000,
+      });
+      if (dis < 2000) {
+        // Snackbar.show({
+        //   text: "Success",
+        //   duration: Snackbar.LENGTH_SHORT,
+        // });
+      } else {
+        // Snackbar.show({
+        //   text: "Error! Reach to Nearby Area",
+        //   duration: Snackbar.LENGTH_LONG,
+        // });
+      }
+      this.props.promoterCheckIn(body, geoLocation);
+    }),
+      (error) => {
+        console.log("error11", error);
+      },
+      { enableHighAccuracy: false, timeout: 2000, maximumAge: 3600000 };
+  };
+
   onCurrentProjectSupervisorHandler = () => {
     if (this.props.projectsState.currentProjects) {
       Actions.ProjectsList({
         IsCheckedIn: true,
-        arrProjects: this.props.projectsState.currentProjects.ProjectList
+        arrProjects: this.props.projectsState.currentProjects.ProjectList,
       });
     }
-  }
+  };
 
   onCurrentProjectPromotersHandler = () => {
     if (this.props.projectsState.currentProjects) {
       Actions.ProjectsList({
         IsCheckedIn: this.state.IsCheckedIn,
-        arrProjects: this.props.projectsState.currentProjects.ProjectList
+        arrProjects: this.props.projectsState.currentProjects.ProjectList,
       });
     }
-  }
+  };
 
   renderCheckedInTiles = () => {
     if (this.state.IsCheckedIn) {
       return (
         <Row>
           <Col style={styles.colStyle}>
-            <TouchableOpacity onPress={this.onCustomerInfoHandler} style={styles.singleContainer}>
-              <Image source={require('../../images/dashboardIcon/cust_info_icon.png')} />
-              <Text style={styles.dashboardTitleStyle}>CUSTOMER INFORMATION</Text>
+            <TouchableOpacity
+              onPress={this.onCustomerInfoHandler}
+              style={styles.singleContainer}
+            >
+              <Image
+                source={require("../../images/dashboardIcon/cust_info_icon.png")}
+              />
+              <Text style={styles.dashboardTitleStyle}>
+                CUSTOMER INFORMATION
+              </Text>
             </TouchableOpacity>
           </Col>
 
           <Col style={styles.colStyle}>
-            <TouchableOpacity onPress={this.onChatHandler} style={styles.singleContainer}>
-              <Image source={require('../../images/dashboardIcon/chat_communication_icon.png')} />
+            <TouchableOpacity
+              onPress={this.onChatHandler}
+              style={styles.singleContainer}
+            >
+              <Image
+                source={require("../../images/dashboardIcon/chat_communication_icon.png")}
+              />
               <Text style={styles.dashboardTitleStyle}>CHAT</Text>
             </TouchableOpacity>
           </Col>
-          
         </Row>
-      )
+      );
     }
 
-    return (<Row>
-      <Col style={styles.colStyle}>
-        <TouchableOpacity onPress={this.onMyProfileHandler} style={styles.singleContainer}>
-          <Image source={require('../../images/dashboardIcon/my_profile_icon.png')} />
-          <Text style={styles.dashboardTitleStyle}>MY PROFILE</Text>
-        </TouchableOpacity>
-      </Col>
+    return (
+      <Row>
+        <Col style={styles.colStyle}>
+          <TouchableOpacity
+            onPress={this.onMyProfileHandler}
+            style={styles.singleContainer}
+          >
+            <Image
+              source={require("../../images/dashboardIcon/my_profile_icon.png")}
+            />
+            <Text style={styles.dashboardTitleStyle}>MY PROFILE</Text>
+          </TouchableOpacity>
+        </Col>
 
-      <Col style={styles.colStyle}>
-            <TouchableOpacity onPress={this.onChatHandler} style={styles.singleContainer}>
-              <Image source={require('../../images/dashboardIcon/chat_communication_icon.png')} />
-              <Text style={styles.dashboardTitleStyle}>CHAT</Text>
-            </TouchableOpacity>
-          </Col>
-
-    </Row>)
-  }
+        <Col style={styles.colStyle}>
+          <TouchableOpacity
+            onPress={this.onChatHandler}
+            style={styles.singleContainer}
+          >
+            <Image
+              source={require("../../images/dashboardIcon/chat_communication_icon.png")}
+            />
+            <Text style={styles.dashboardTitleStyle}>CHAT</Text>
+          </TouchableOpacity>
+        </Col>
+      </Row>
+    );
+  };
 
   promotersLandingscreen() {
-    const allProjectCount = this.props.projectsState.projects ? this.props.projectsState.projects.ProjectList.length : 0
-    const currentProjectCount = this.props.projectsState.currentProjects ? this.props.projectsState.currentProjects.ProjectList.length : 0
+    const allProjectCount = this.props.projectsState.projects
+      ? this.props.projectsState.projects.ProjectList.length
+      : 0;
+    const currentProjectCount = this.props.projectsState.currentProjects
+      ? this.props.projectsState.currentProjects.ProjectList.length
+      : 0;
 
     return (
       <Grid>
         <Row style={styles.colStyle}>
-
-          {this.state.IsCheckedIn &&
-          <Col style={styles.colStyle}>
-          <TouchableOpacity onPress={this.onCurrentProjectPromotersHandler} style={styles.singleContainer}>
-                <Image source={require('../../images/dashboardIcon/projects_icon.png')} style={styles.iconStyle} />
-                <Text style={styles.dashboardTitleStyle}>CURRENT PROJECT ({currentProjectCount})</Text>
+          {this.state.IsCheckedIn && (
+            <Col style={styles.colStyle}>
+              <TouchableOpacity
+                onPress={this.onCurrentProjectPromotersHandler}
+                style={styles.singleContainer}
+              >
+                <Image
+                  source={require("../../images/dashboardIcon/projects_icon.png")}
+                  style={styles.iconStyle}
+                />
+                <Text style={styles.dashboardTitleStyle}>
+                  CURRENT PROJECT ({currentProjectCount})
+                </Text>
               </TouchableOpacity>
             </Col>
-          }
+          )}
 
           <Col style={styles.colStyle}>
-            <TouchableOpacity onPress={this.onProjectHandler} style={styles.singleContainer}>
-              <Image source={require('../../images/dashboardIcon/projects_icon.png')} style={styles.iconStyle} />
-              <Text style={styles.dashboardTitleStyle}>PROJECTS ({allProjectCount})</Text>
+            <TouchableOpacity
+              onPress={this.onProjectHandler}
+              style={styles.singleContainer}
+            >
+              <Image
+                source={require("../../images/dashboardIcon/projects_icon.png")}
+                style={styles.iconStyle}
+              />
+              <Text style={styles.dashboardTitleStyle}>
+                PROJECTS ({allProjectCount})
+              </Text>
             </TouchableOpacity>
           </Col>
-
         </Row>
 
         {this.renderCheckedInTiles()}
 
         <Row>
-
           <Col style={styles.colStyle}>
-            <TouchableOpacity onPress={this.onCheckInCheckOutHandler} style={styles.singleContainer}>
-              {this.state.IsCheckedIn ? <Image source={require('../../images/dashboardIcon/checkOut.png')} /> : <Image source={require('../../images/dashboardIcon/checkIn.png')} />}
-              <Text style={styles.dashboardTitleStyle}>{this.state.strCheckInStatus}</Text>
+            <TouchableOpacity
+              onPress={this.onCheckInCheckOutHandler}
+              style={styles.singleContainer}
+            >
+              {this.state.IsCheckedIn ? (
+                <Image
+                  source={require("../../images/dashboardIcon/checkOut.png")}
+                />
+              ) : (
+                <Image
+                  source={require("../../images/dashboardIcon/checkIn.png")}
+                />
+              )}
+              <Text style={styles.dashboardTitleStyle}>
+                {this.state.strCheckInStatus}
+              </Text>
               {this.props.checkInState.isLoading && <LoadingChat />}
             </TouchableOpacity>
           </Col>
-
         </Row>
-
       </Grid>
     );
   }
   superVisorLandingscreen() {
-    var isAccountManager = this.props.loginState.response.userRole === 3 ? true : false
-    const allProjectCount = this.props.projectsState.projects ? this.props.projectsState.projects.ProjectList.length : 0
-    const currentProjectCount = this.props.projectsState.currentProjects ? this.props.projectsState.currentProjects.ProjectList.length : 0
+    var isAccountManager =
+      this.props.loginState.response.userRole === 3 ? true : false;
+    const allProjectCount = this.props.projectsState.projects
+      ? this.props.projectsState.projects.ProjectList.length
+      : 0;
+    const currentProjectCount = this.props.projectsState.currentProjects
+      ? this.props.projectsState.currentProjects.ProjectList.length
+      : 0;
 
     return (
       <Grid>
         <Row>
           <Col style={styles.colStyle}>
-            <TouchableOpacity onPress={this.onCurrentProjectSupervisorHandler} style={styles.singleContainer}>
-              <Image source={require('../../images/dashboardIcon/projects_icon.png')} style={styles.iconStyle} />
-              <Text style={styles.dashboardTitleStyle}>CURRENT PROJECTS({currentProjectCount})</Text>
+            <TouchableOpacity
+              onPress={this.onCurrentProjectSupervisorHandler}
+              style={styles.singleContainer}
+            >
+              <Image
+                source={require("../../images/dashboardIcon/projects_icon.png")}
+                style={styles.iconStyle}
+              />
+              <Text style={styles.dashboardTitleStyle}>
+                CURRENT PROJECTS({currentProjectCount})
+              </Text>
             </TouchableOpacity>
           </Col>
 
           <Col style={styles.colStyle}>
-            <TouchableOpacity onPress={this.onProjectHandler} style={styles.singleContainer}>
-              <Image source={require('../../images/dashboardIcon/projects_icon.png')} style={styles.iconStyle} />
-              <Text style={styles.dashboardTitleStyle}>PROJECTS ({allProjectCount})</Text>
+            <TouchableOpacity
+              onPress={this.onProjectHandler}
+              style={styles.singleContainer}
+            >
+              <Image
+                source={require("../../images/dashboardIcon/projects_icon.png")}
+                style={styles.iconStyle}
+              />
+              <Text style={styles.dashboardTitleStyle}>
+                PROJECTS ({allProjectCount})
+              </Text>
             </TouchableOpacity>
           </Col>
-
         </Row>
 
         <Row>
           <Col style={styles.colStyle}>
-            <TouchableOpacity onPress={this.onPromoterHandler} style={styles.singleContainer}>
-              <Image source={require('../../images/dashboardIcon/promoters_icon.png')} />
+            <TouchableOpacity
+              onPress={this.onPromoterHandler}
+              style={styles.singleContainer}
+            >
+              <Image
+                source={require("../../images/dashboardIcon/promoters_icon.png")}
+              />
               <Text style={styles.dashboardTitleStyle}>PROMOTERS</Text>
             </TouchableOpacity>
           </Col>
 
           <Col style={styles.colStyle}>
-            <TouchableOpacity onPress={this.onChatHandler} style={styles.singleContainer}>
-              <Image source={require('../../images/dashboardIcon/chat_communication_icon.png')} />
+            <TouchableOpacity
+              onPress={this.onChatHandler}
+              style={styles.singleContainer}
+            >
+              <Image
+                source={require("../../images/dashboardIcon/chat_communication_icon.png")}
+              />
               <Text style={styles.dashboardTitleStyle}>CHAT</Text>
             </TouchableOpacity>
           </Col>
@@ -398,46 +491,67 @@ class ProjectDashBoard extends Component {
 
         <Row>
           <Col style={styles.colStyle}>
-            <TouchableOpacity onPress={this.onMyProfileHandler} style={styles.singleContainer}>
-              <Image source={require('../../images/dashboardIcon/my_profile_icon.png')} />
+            <TouchableOpacity
+              onPress={this.onMyProfileHandler}
+              style={styles.singleContainer}
+            >
+              <Image
+                source={require("../../images/dashboardIcon/my_profile_icon.png")}
+              />
               <Text style={styles.dashboardTitleStyle}>MY PROFILE</Text>
             </TouchableOpacity>
           </Col>
 
-        {!isAccountManager && 
-          <Col style={styles.colStyle}>
-            <TouchableOpacity onPress={this.onCheckInCheckOutHandler} style={styles.singleContainer}>
-              {this.state.IsCheckedIn ? <Image source={require('../../images/dashboardIcon/checkOut.png')} /> : <Image source={require('../../images/dashboardIcon/checkIn.png')} />}
-              <Text style={styles.dashboardTitleStyle}>{this.state.strCheckInStatus}</Text>
-              {this.props.checkInState.isLoading && <LoadingChat />}
-            </TouchableOpacity>
-          </Col>
-        }
+          {!isAccountManager && (
+            <Col style={styles.colStyle}>
+              <TouchableOpacity
+                onPress={this.onCheckInCheckOutHandler}
+                style={styles.singleContainer}
+              >
+                {this.state.IsCheckedIn ? (
+                  <Image
+                    source={require("../../images/dashboardIcon/checkOut.png")}
+                  />
+                ) : (
+                  <Image
+                    source={require("../../images/dashboardIcon/checkIn.png")}
+                  />
+                )}
+                <Text style={styles.dashboardTitleStyle}>
+                  {this.state.strCheckInStatus}
+                </Text>
+                {this.props.checkInState.isLoading && <LoadingChat />}
+              </TouchableOpacity>
+            </Col>
+          )}
         </Row>
-        
       </Grid>
     );
   }
 
   removeFailureNotification = () => {
     this.setState({
-      strCheckInStatus: this.props.checkInState.IsCheckedIn ? 'CHECK-OUT' : 'CHECK-IN',
+      strCheckInStatus: this.props.checkInState.IsCheckedIn
+        ? "CHECK-OUT"
+        : "CHECK-IN",
       IsCheckedIn: this.props.checkInState.IsCheckedIn,
-      isPressed:false
-    })
+      isPressed: false,
+    });
     const body = {
-      location: 'dubai'
-    }
-    this.props.resetProjectsData(body)
-    this.props.resetCheckInData(body)
+      location: "dubai",
+    };
+    this.props.resetProjectsData(body);
+    this.props.resetCheckInData(body);
 
     if (this.state.IsCheckedIn)
-      this.props.projectDetailUpdate(this.props.checkInState.checkInResult)
-  }
+      this.props.projectDetailUpdate(this.props.checkInState.checkInResult);
+  };
 
   renderGetprojectError() {
     if (this.props.projectsState.error) {
-      let errorMessage = this.props.projectsState.error.message || this.props.projectsState.error.ResponseStatus.Message
+      let errorMessage =
+        this.props.projectsState.error.message ||
+        this.props.projectsState.error.ResponseStatus.Message;
       return (
         <Notification
           initialTop={0}
@@ -446,7 +560,7 @@ class ProjectDashBoard extends Component {
           message={errorMessage}
           handleRemove={this.removeFailureNotification}
         />
-      )
+      );
     }
   }
   renderCheckInSuccessMessage() {
@@ -459,16 +573,19 @@ class ProjectDashBoard extends Component {
           message={this.props.checkInState.message}
           handleRemove={this.removeFailureNotification}
         />
-      )
+      );
     }
   }
 
-  removeNotification = () => {
-  }
+  removeNotification = () => {};
 
   renderCheckInFailureMessage() {
     if (this.props.checkInState.error) {
-      let errorMessage = this.props.checkInState.error.message || this.props.checkInState.error.ResponseStatus ? this.props.checkInState.error.ResponseStatus.Message : ''
+      let errorMessage =
+        this.props.checkInState.error.message ||
+        this.props.checkInState.error.ResponseStatus
+          ? this.props.checkInState.error.ResponseStatus.Message
+          : "";
       return (
         <Notification
           initialTop={0}
@@ -477,21 +594,22 @@ class ProjectDashBoard extends Component {
           message={errorMessage}
           handleRemove={this.removeFailureNotification}
         />
-      )
+      );
     }
   }
 
   renderDashboard() {
-    var isPromoter = this.props.loginState.response.userRole === 2 ? true : false 
-    if(isPromoter) {
-      return (<View style={{ flex: 1 }}>{this.promotersLandingscreen()}</View>)
-    }else {
-      return (<View style={{ flex: 1 }}>{this.superVisorLandingscreen()}</View>)
+    var isPromoter =
+      this.props.loginState.response.userRole === 2 ? true : false;
+    if (isPromoter) {
+      return <View style={{ flex: 1 }}>{this.promotersLandingscreen()}</View>;
+    } else {
+      return <View style={{ flex: 1 }}>{this.superVisorLandingscreen()}</View>;
     }
   }
 
   render() {
-    if(!this.props.loginState.isLogin) return null
+    if (!this.props.loginState.isLogin) return null;
 
     return (
       <View style={styles.mainContainer}>
@@ -499,22 +617,21 @@ class ProjectDashBoard extends Component {
           {this.renderCheckInSuccessMessage()}
           {this.renderCheckInFailureMessage()}
 
-          {!this.props.appConfig.IsInternetConnected &&
+          {!this.props.appConfig.IsInternetConnected && (
             <Notification
               initialTop={0}
               duration={5000}
               success={false}
-              message={'No Internet connection'}
+              message={"No Internet connection"}
               handleRemove={this.removeNotification}
             />
-          }
+          )}
 
-          {this.props.loginState.isLogin &&
-            <AccountHeader hideCall={false} style={{ borderWidth: 0 }}/>
-          }
+          {this.props.loginState.isLogin && (
+            <AccountHeader hideCall={false} style={{ borderWidth: 0 }} />
+          )}
 
           {this.renderDashboard()}
-
         </View>
       </View>
     );
@@ -531,10 +648,10 @@ ProjectDashBoard.propTypes = {
   projectDetailUpdate: PropTypes.func.isRequired,
   getCheckedInStatus: PropTypes.func.isRequired,
   getAllUsers: PropTypes.func.isRequired,
-  getAppConfig: PropTypes.func.isRequired
+  getAppConfig: PropTypes.func.isRequired,
 };
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch) => ({
   getProjects: (data) => dispatch(getProjects(data)),
   getCurrentProjects: (data) => dispatch(getCurrentProjects(data)),
   promoterCheckIn: (...data) => dispatch(promoterCheckIn(...data)),
@@ -544,15 +661,15 @@ const mapDispatchToProps = dispatch => ({
   projectDetailUpdate: (data) => dispatch(projectDetailUpdate(data)),
   getCheckedInStatus: (data) => dispatch(getCheckedInStatus(data)),
   getAllUsers: (data) => dispatch(getAllUsers(data)),
-  getAppConfig: () => dispatch(getAppConfig())
+  getAppConfig: () => dispatch(getAppConfig()),
 });
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state) => ({
   loginState: state.login,
   projectsState: state.projects,
   checkInState: state.checkIn,
   users: state.users,
-  appConfig: state.appConfig
+  appConfig: state.appConfig,
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ProjectDashBoard);
