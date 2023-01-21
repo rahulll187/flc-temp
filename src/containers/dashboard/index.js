@@ -6,6 +6,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
+  Platform,
+  Linking,
   PermissionsAndroid,
 } from "react-native";
 import { Actions } from "react-native-router-flux";
@@ -63,6 +65,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 0.5,
     borderColor: "#D2D2D2",
+   
   },
   dashboardView: {
     flex: 1,
@@ -71,6 +74,7 @@ const styles = StyleSheet.create({
     marginTop: 30,
     textAlign: "center",
     fontSize: 16,
+   
   },
   customerInfo: {
     marginTop: 30,
@@ -233,41 +237,72 @@ class ProjectDashBoard extends Component {
     const body = {
       location: "dubai",
     };
-    Geolocation.getCurrentPosition((position) => {
-      if (this.state.IsCheckedIn) {
-        this.props.promoterCheckout(body);
-        return;
-      }
-      const geoLocation = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-      };
-      var dis = getDistance(
-        { latitude: 18.5820941, longitude: 73.7648666 },
-        { latitude: 24.423097, longitude: 54.44928 }
-      );
-      this.setState({
-        distance: dis / 1000,
-      });
-      if (dis < 2000) {
-        // Snackbar.show({
-        //   text: "Success",
-        //   duration: Snackbar.LENGTH_SHORT,
-        // });
-      } else {
-        // Snackbar.show({
-        //   text: "Error! Reach to Nearby Area",
-        //   duration: Snackbar.LENGTH_LONG,
-        // });
-      }
-      this.props.promoterCheckIn(body, geoLocation);
-    }),
-      (error) => {
-        console.log("error11", error);
-      },
-      { enableHighAccuracy: false, timeout: 2000, maximumAge: 3600000 };
-  };
+    console.log("before geolocation");
+    if (Platform.OS === 'ios') {
+      const status = await Geolocation.requestAuthorization('whenInUse');
+console.log('status',status);
 
+if (status === 'denied') {
+  Linking.openSettings().catch(() => {
+    Alert.alert('Unable to open settings');
+  });
+}
+
+if (status === 'disabled') {
+  Alert.alert(
+    `Turn on Location Services to allow "${appConfig.displayName}" to determine your location.`,
+    '',
+    [
+      { text: 'Go to Settings', onPress: openSetting },
+      { text: "Don't Use Location", onPress: () => {} },
+    ],
+  );
+}
+
+    if (status === 'granted') {
+      Geolocation.getCurrentPosition((position) => {
+        console.log("inside current pos",Geolocation.getCurrentPosition);
+        if (this.state.IsCheckedIn) {
+          this.props.promoterCheckout(body);
+          return;
+        }
+      
+        const geoLocation = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+        var dis = getDistance(
+          { latitude: 18.5820941, longitude: 73.7648666 },
+          { latitude: 24.423097, longitude: 54.44928 }
+        );
+        this.setState({
+          distance: dis / 1000,
+        });
+        if (dis < 2000) {
+          Snackbar.show({
+            text: "Success",
+            duration: Snackbar.LENGTH_SHORT,
+          });
+        } else {
+          Snackbar.show({
+            text: "Error! Reach to Nearby Area",
+            duration: Snackbar.LENGTH_LONG,
+          });
+        }
+      
+        this.props.promoterCheckIn(body, geoLocation);
+      }),
+        (error) => {
+          console.log("error11", error);
+        },
+        { enableHighAccuracy: false, timeout: 2000, maximumAge: 3600000 };
+    };
+    }
+
+    
+      
+   
+  
   onCurrentProjectSupervisorHandler = () => {
     if (this.props.projectsState.currentProjects) {
       Actions.ProjectsList({
@@ -276,7 +311,7 @@ class ProjectDashBoard extends Component {
       });
     }
   };
-
+  }
   onCurrentProjectPromotersHandler = () => {
     if (this.props.projectsState.currentProjects) {
       Actions.ProjectsList({
@@ -396,12 +431,12 @@ class ProjectDashBoard extends Component {
 
         <Row>
           <Col style={styles.colStyle}>
-            <TouchableOpacity
+            <TouchableOpacity 
               onPress={this.onCheckInCheckOutHandler}
               style={styles.singleContainer}
             >
               {this.state.IsCheckedIn ? (
-                <Image
+                <Image 
                   source={require("../../images/dashboardIcon/checkOut.png")}
                 />
               ) : (
@@ -582,9 +617,9 @@ class ProjectDashBoard extends Component {
   renderCheckInFailureMessage() {
     if (this.props.checkInState.error) {
       let errorMessage =
-        this.props.checkInState.error.message ||
-        this.props.checkInState.error.ResponseStatus
-          ? this.props.checkInState.error.ResponseStatus.Message
+        this.props?.checkInState?.error?.message ||
+        this.props?.checkInState.error?.ResponseStatus
+          ? this.props?.checkInState?.error?.ResponseStatus.Message
           : "";
       return (
         <Notification
