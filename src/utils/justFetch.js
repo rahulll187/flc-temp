@@ -86,10 +86,14 @@ const justFetch = ({ url, data, method = "GET", token, header }) =>
 
      setTimeout(reject.bind(null, {ResponseStatus:{Message:'Request Timeout'}}), 60000);
   })
+
     .then(res => res.json())
     .then(res => {
+      // console.log('res for login',res)
+      console.log('res for login',res)
        if (res.ResponseStatus.Code === "SUCCESS") {
-      console.log("API Response:" + JSON.stringify(res));
+        console.log('res for login',res.ResponseStatus.Code)
+      console.log("API Response: FOR LOGIN" + JSON.stringify(res.ResponseStatus.Code));
          return Promise.resolve(res);
       } else {
         throw res;
