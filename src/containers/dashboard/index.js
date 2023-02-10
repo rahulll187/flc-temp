@@ -284,10 +284,10 @@ if (status === 'disabled') {
             duration: Snackbar.LENGTH_SHORT,
           });
         } else {
-          Snackbar.show({
-            text: "Error! Reach to Nearby Area",
-            duration: Snackbar.LENGTH_LONG,
-          });
+          // Snackbar.show({
+          //   text: "Error! Reach to Nearby Area",
+          //   duration: Snackbar.LENGTH_LONG,
+          // });
         }
       
         this.props.promoterCheckIn(body, geoLocation);
